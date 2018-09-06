@@ -2,6 +2,15 @@
 name = "libnfs"
 version = "0.1.0"
 authors = ["Chris Holcombe <xfactor973@gmail.com>"]
+description = "libnfs bindings allow you to create nfs mounts in memory/userspace"
+homepage = "https://github.com/cholcombe973/libnfs"
+repository = "https://github.com/cholcombe973/libnfs"
+documentation = "https://docs.rs/libnfs"
+license = "MIT"
+readme = "README.md"
+keywords = ["nfs"]
+categories = ["api-bindings", "network-programming", "filesystem", "external-ffi-bindings"]
+
 
 [dependencies]
 libc = "~0.2"
