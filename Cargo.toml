@@ -1,0 +1,9 @@
+[package]
+name = "libnfs"
+version = "0.1.0"
+authors = ["Chris Holcombe <xfactor973@gmail.com>"]
+
+[dependencies]
+libc = "~0.2"
+libnfs-sys = "~0.2"
+nix = "~0.11"
