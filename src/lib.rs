@@ -594,7 +594,7 @@ impl<'a> NfsFile<'a> {
                 self.handle,
                 offset,
                 count,
-                buffer.as_mut_ptr() as *mut i8,
+                buffer.as_mut_ptr() as *mut _,
             );
             if read_size < 0 {
                 return Err(Error::new(ErrorKind::Other, self.nfs.get_nfs_error()?));
@@ -611,7 +611,7 @@ impl<'a> NfsFile<'a> {
                 self.handle,
                 offset,
                 count,
-                buffer.as_mut_ptr() as *mut i8,
+                buffer.as_mut_ptr() as *mut _,
             );
             if write_size < 0 {
                 return Err(Error::new(ErrorKind::Other, self.nfs.get_nfs_error()?));
