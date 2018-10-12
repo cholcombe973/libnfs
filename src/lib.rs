@@ -587,7 +587,8 @@ impl<'a> NfsFile<'a> {
         }
     }
 
-    pub fn pread(&self, buffer: &mut Vec<u8>, count: u64, offset: u64) -> Result<i32> {
+    pub fn pread(&self, count: u64, offset: u64) -> Result<Vec<u8>> {
+        let mut buffer: Vec<u8> = Vec::with_capacity(count as usize);
         unsafe {
             let read_size = nfs_pread(
                 self.nfs.context,
@@ -600,18 +601,18 @@ impl<'a> NfsFile<'a> {
                 return Err(Error::new(ErrorKind::Other, self.nfs.get_nfs_error()?));
             }
             buffer.set_len(read_size as usize);
-            Ok(read_size)
+            Ok(buffer)
         }
     }
 
-    pub fn pwrite(&self, buffer: &mut [u8], count: u64, offset: u64) -> Result<i32> {
+    pub fn pwrite(&self, buffer: &[u8], offset: u64) -> Result<i32> {
         unsafe {
             let write_size = nfs_pwrite(
                 self.nfs.context,
                 self.handle,
                 offset,
-                count,
-                buffer.as_mut_ptr() as *mut _,
+                buffer.len() as u64,
+                buffer.as_ptr() as *mut _,
             );
             if write_size < 0 {
                 return Err(Error::new(ErrorKind::Other, self.nfs.get_nfs_error()?));
@@ -620,13 +621,12 @@ impl<'a> NfsFile<'a> {
         }
     }
 
-    pub fn read(&self, fill_buffer: &mut Vec<u8>, count: u64) -> Result<i32> {
-        self.pread(fill_buffer, count, 0)
+    pub fn read(&self, count: u64) -> Result<Vec<u8>> {
+        self.pread(count, 0)
     }
 
-    pub fn write(&self, buffer: &mut [u8]) -> Result<i32> {
-        let len = buffer.len();
-        self.pwrite(buffer, len as u64, 0)
+    pub fn write(&self, buffer: &[u8]) -> Result<i32> {
+        self.pwrite(buffer, 0)
     }
 
     /*
