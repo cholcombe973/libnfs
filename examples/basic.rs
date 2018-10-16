@@ -14,28 +14,24 @@ fn main() -> Result<(), String> {
     nfs.set_debug(9).map_err(|e| e.to_string())?;
     nfs.mount("0.0.0.0", "/srv/nfs")
         .map_err(|e| e.to_string())?;
-    {
-        let dir = nfs.opendir(&Path::new("/")).map_err(|e| e.to_string())?;
 
-        for f in dir {
-            println!("dir: {:?}", f);
-        }
+    let dir = nfs.opendir(&Path::new("/")).map_err(|e| e.to_string())?;
+    for f in dir {
+        println!("dir: {:?}", f);
     }
 
-    {
-        println!("creating file");
-        let file = nfs
-            .create(&Path::new("/rust"), OFlag::O_SYNC, Mode::S_IRWXU)
-            .map_err(|e| e.to_string())?;
-        let mut contents = String::from("Hello from rust").into_bytes();
-        file.write(&mut contents).map_err(|e| e.to_string())?;
-    }
-    {
-        println!("reading file");
-        let file = nfs.open(&Path::new("/rust"), OFlag::O_RDONLY).map_err(|e| e.to_string())?;
-        let mut buff = Vec::with_capacity(2048);
-        file.read(&mut buff, 1024).map_err(|e| e.to_string())?;
-        println!("read file: {}", String::from_utf8_lossy(&buff));
-    }
+    println!("creating file");
+    let file = nfs
+        .create(&Path::new("/rust"), OFlag::O_SYNC, Mode::S_IRWXU)
+        .map_err(|e| e.to_string())?;
+    let mut contents = String::from("Hello from rust").into_bytes();
+    file.write(&mut contents).map_err(|e| e.to_string())?;
+
+    println!("reading file");
+    let file = nfs
+        .open(&Path::new("/rust"), OFlag::O_RDONLY)
+        .map_err(|e| e.to_string())?;
+    let buff = file.read(1024).map_err(|e| e.to_string())?;
+    println!("read file: {}", String::from_utf8_lossy(&buff));
     Ok(())
 }
