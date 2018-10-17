@@ -55,11 +55,40 @@ pub struct Nfs {
 }
 
 #[derive(Debug)]
+pub enum EntryType {
+    Block,
+    Character,
+    Directory,
+    File,
+    NamedPipe,
+    Symlink,
+    Socket,
+}
+
+impl EntryType {
+    fn from(t: ftype3) -> Result<EntryType> {
+        match t {
+            ftype3_NF3BLK => Ok(EntryType::Block),
+            ftype3_NF3CHR => Ok(EntryType::Character),
+            ftype3_NF3DIR => Ok(EntryType::Directory),
+            ftype3_NF3REG => Ok(EntryType::File),
+            ftype3_NF3FIFO => Ok(EntryType::NamedPipe),
+            ftype3_NF3LNK => Ok(EntryType::Symlink),
+            ftype3_NF3SOCK => Ok(EntryType::Socket),
+            _ => Err(Error::new(
+                ErrorKind::InvalidData,
+                format!("Unknown file type: {}", t),
+            )),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct DirEntry {
     pub path: PathBuf,
     pub inode: u64,
-    pub type_: u32,
-    pub mode: u32,
+    pub d_type: EntryType,
+    pub mode: Mode,
     pub size: u64,
     pub atime: timeval,
     pub mtime: timeval,
@@ -315,7 +344,12 @@ impl Nfs {
             let mut file_handle: *mut nfsfh = ptr::null_mut();
             check_retcode(
                 self.context.0,
-                nfs_open(self.context.0, path.as_ptr(), flags.bits(), &mut file_handle),
+                nfs_open(
+                    self.context.0,
+                    path.as_ptr(),
+                    flags.bits(),
+                    &mut file_handle,
+                ),
             )?;
             Ok(NfsFile {
                 nfs: Rc::clone(&self.context),
@@ -651,8 +685,8 @@ impl NfsFile {
 }
 
 impl Iterator for NfsDirectory {
-    type Item = DirEntry;
-    fn next(&mut self) -> Option<DirEntry> {
+    type Item = Result<DirEntry>;
+    fn next(&mut self) -> Option<Self::Item> {
         unsafe {
             let dirent = nfs_readdir(self.nfs.0, self.handle);
             if dirent.is_null() {
@@ -660,11 +694,26 @@ impl Iterator for NfsDirectory {
             }
 
             let file_name = CStr::from_ptr((*dirent).name);
-            Some(DirEntry {
+            let d_type = match EntryType::from((*dirent).type_) {
+                Ok(ty) => ty,
+                Err(e) => {
+                    return Some(Err(e));
+                }
+            };
+            let mode = match Mode::from_bits((*dirent).mode) {
+                Some(bits) => bits,
+                None => {
+                    return Some(Err(Error::new(
+                        ErrorKind::InvalidData,
+                        format!("Invalid mode: {}", (*dirent).mode),
+                    )))
+                }
+            };
+            Some(Ok(DirEntry {
                 path: PathBuf::from(file_name.to_string_lossy().into_owned()),
                 inode: (*dirent).inode,
-                type_: (*dirent).type_,
-                mode: (*dirent).mode,
+                d_type,
+                mode,
                 size: (*dirent).size,
                 atime: (*dirent).atime,
                 mtime: (*dirent).mtime,
@@ -680,7 +729,7 @@ impl Iterator for NfsDirectory {
                 atime_nsec: (*dirent).atime_nsec,
                 mtime_nsec: (*dirent).mtime_nsec,
                 ctime_nsec: (*dirent).ctime_nsec,
-            })
+            }))
         }
     }
 }
