@@ -88,7 +88,7 @@ pub struct DirEntry {
     pub path: PathBuf,
     pub inode: u64,
     pub d_type: EntryType,
-    pub mode: Mode,
+    pub mode: u32,
     pub size: u64,
     pub atime: timeval,
     pub mtime: timeval,
@@ -700,20 +700,11 @@ impl Iterator for NfsDirectory {
                     return Some(Err(e));
                 }
             };
-            let mode = match Mode::from_bits((*dirent).mode) {
-                Some(bits) => bits,
-                None => {
-                    return Some(Err(Error::new(
-                        ErrorKind::InvalidData,
-                        format!("Invalid mode: {}", (*dirent).mode),
-                    )))
-                }
-            };
             Some(Ok(DirEntry {
                 path: PathBuf::from(file_name.to_string_lossy().into_owned()),
                 inode: (*dirent).inode,
                 d_type,
-                mode,
+                mode: (*dirent).mode,
                 size: (*dirent).size,
                 atime: (*dirent).atime,
                 mtime: (*dirent).mtime,
