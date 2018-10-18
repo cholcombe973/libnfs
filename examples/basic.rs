@@ -5,7 +5,6 @@ use std::path::Path;
 
 use libnfs::*;
 use nix::fcntl::OFlag;
-use nix::sys::stat::Mode;
 
 fn main() -> Result<(), String> {
     let mut nfs = Nfs::new().map_err(|e| e.to_string())?;
@@ -22,8 +21,11 @@ fn main() -> Result<(), String> {
 
     println!("creating file");
     let file = nfs
-        .create(&Path::new("/rust"), OFlag::O_SYNC, Mode::S_IRWXU)
-        .map_err(|e| e.to_string())?;
+        .create(
+            &Path::new("/rust"),
+            OFlag::O_SYNC,
+            Mode::S_IROTH | Mode::S_IWOTH,
+        ).map_err(|e| e.to_string())?;
     let mut contents = String::from("Hello from rust").into_bytes();
     file.write(&mut contents).map_err(|e| e.to_string())?;
 
