@@ -57,7 +57,7 @@ pub struct Nfs {
 }
 
 bitflags! {
-    pub struct Mode: u32 {
+    pub struct Mode: mode_t {
         /// Set user ID on execution
         const S_ISUID = 0x00800;
         /// Set group ID on execution
