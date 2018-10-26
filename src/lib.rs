@@ -3,12 +3,14 @@
 //! version=4 or programatically calling nfs_set_version(nfs, NFS_V4) before
 //! connecting to the server/share.
 //!
+#[macro_use]
+extern crate bitflags;
 extern crate libc;
 extern crate libnfs_sys;
 extern crate nix;
 
 use libnfs_sys::*;
-use nix::{fcntl::OFlag, sys::stat::Mode};
+use nix::fcntl::OFlag;
 
 use std::ffi::{CStr, CString};
 use std::io::{Error, ErrorKind, Result};
@@ -54,12 +56,73 @@ pub struct Nfs {
     context: Rc<NfsPtr>,
 }
 
+bitflags! {
+    pub struct Mode: mode_t {
+        /// Set user ID on execution
+        const S_ISUID = 0x00800;
+        /// Set group ID on execution
+        const S_ISGID = 0x00400;
+        /// Save swapped text (not defined in POSIX)
+        const S_ISVTX = 0x00200;
+        /// Read permission for owner
+        const S_IRUSR = 0x00100;
+        /// Write permission for owner
+        const S_IWUSR = 0x00080;
+        /// Execute permission for owner on a file. Or lookup
+        /// (search) permission for owner in directory
+        const S_IXUSR = 0x00040;
+        /// Read permission for group
+        const S_IRGRP = 0x00020;
+        /// Write permission for group
+        const S_IWGRP = 0x00010;
+        /// Execute permission for group on a file. Or lookup
+        /// (search) permission for group in directory
+        const S_IXGRP = 0x00008;
+        /// Read permission for others
+        const S_IROTH = 0x00004;
+        /// Write permission for others
+        const S_IWOTH = 0x00002;
+        /// Execute permission for others on a file. Or lookup
+        /// (search) permission for others in directory
+        const S_IXOTH = 0x00001;
+    }
+}
+
+#[derive(Debug)]
+pub enum EntryType {
+    Block,
+    Character,
+    Directory,
+    File,
+    NamedPipe,
+    Symlink,
+    Socket,
+}
+
+impl EntryType {
+    fn from(t: ftype3) -> Result<EntryType> {
+        match t {
+            ftype3_NF3BLK => Ok(EntryType::Block),
+            ftype3_NF3CHR => Ok(EntryType::Character),
+            ftype3_NF3DIR => Ok(EntryType::Directory),
+            ftype3_NF3REG => Ok(EntryType::File),
+            ftype3_NF3FIFO => Ok(EntryType::NamedPipe),
+            ftype3_NF3LNK => Ok(EntryType::Symlink),
+            ftype3_NF3SOCK => Ok(EntryType::Socket),
+            _ => Err(Error::new(
+                ErrorKind::InvalidData,
+                format!("Unknown file type: {}", t),
+            )),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct DirEntry {
     pub path: PathBuf,
     pub inode: u64,
-    pub type_: u32,
-    pub mode: u32,
+    pub d_type: EntryType,
+    pub mode: Mode,
     pub size: u64,
     pub atime: timeval,
     pub mtime: timeval,
@@ -315,7 +378,12 @@ impl Nfs {
             let mut file_handle: *mut nfsfh = ptr::null_mut();
             check_retcode(
                 self.context.0,
-                nfs_open(self.context.0, path.as_ptr(), flags.bits(), &mut file_handle),
+                nfs_open(
+                    self.context.0,
+                    path.as_ptr(),
+                    flags.bits(),
+                    &mut file_handle,
+                ),
             )?;
             Ok(NfsFile {
                 nfs: Rc::clone(&self.context),
@@ -651,8 +719,8 @@ impl NfsFile {
 }
 
 impl Iterator for NfsDirectory {
-    type Item = DirEntry;
-    fn next(&mut self) -> Option<DirEntry> {
+    type Item = Result<DirEntry>;
+    fn next(&mut self) -> Option<Self::Item> {
         unsafe {
             let dirent = nfs_readdir(self.nfs.0, self.handle);
             if dirent.is_null() {
@@ -660,11 +728,18 @@ impl Iterator for NfsDirectory {
             }
 
             let file_name = CStr::from_ptr((*dirent).name);
-            Some(DirEntry {
+            let d_type = match EntryType::from((*dirent).type_) {
+                Ok(ty) => ty,
+                Err(e) => {
+                    return Some(Err(e));
+                }
+            };
+            let mode = Mode::from_bits_truncate((*dirent).mode);
+            Some(Ok(DirEntry {
                 path: PathBuf::from(file_name.to_string_lossy().into_owned()),
                 inode: (*dirent).inode,
-                type_: (*dirent).type_,
-                mode: (*dirent).mode,
+                d_type,
+                mode,
                 size: (*dirent).size,
                 atime: (*dirent).atime,
                 mtime: (*dirent).mtime,
@@ -680,7 +755,7 @@ impl Iterator for NfsDirectory {
                 atime_nsec: (*dirent).atime_nsec,
                 mtime_nsec: (*dirent).mtime_nsec,
                 ctime_nsec: (*dirent).ctime_nsec,
-            })
+            }))
         }
     }
 }
