@@ -1,4 +1,4 @@
-# libnfs
+# libnfs [![Build Status](https://travis-ci.org/cholcombe973/libnfs.svg?branch=master)](https://travis-ci.org/cholcombe973/libnfs)
 Safe NFS bindings to build NFS clients in Rust
 [libnfs](https://github.com/sahlberg/libnfs) rust bindings
 
