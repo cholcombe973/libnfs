@@ -545,19 +545,17 @@ impl Nfs {
         }
     }
 
-    /*
-    pub fn utime(&self, path: &Path) -> Result<utimbuf> {
+    // Set the access and modified times
+    pub fn utimes(&self, path: &Path, times: &mut [timeval; 2]) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let mut times = utimbuf {
-            actime: 0,
-            modtime: 0,
-        };
         unsafe {
-            check_retcode(self.context.0, nfs_utime(self.context.0, path.as_ptr(), times as *mut libnfs_sys::utimbuf))?;
-            Ok(times)
+            check_retcode(
+                self.context.0,
+                nfs_utimes(self.context.0, path.as_ptr(), times.as_mut_ptr()),
+            )?;
+            Ok(())
         }
     }
-    */
 }
 
 impl NfsFile {
