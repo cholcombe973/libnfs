@@ -1,37 +1,36 @@
 extern crate libnfs;
 extern crate nix;
 
+use std::io::Result;
 use std::path::Path;
 
 use libnfs::*;
 use nix::fcntl::OFlag;
-use nix::sys::stat::Mode;
 
-fn main() -> Result<(), String> {
-    let mut nfs = Nfs::new().map_err(|e| e.to_string())?;
-    nfs.set_uid(1000).map_err(|e| e.to_string())?;
-    nfs.set_gid(1000).map_err(|e| e.to_string())?;
-    nfs.set_debug(9).map_err(|e| e.to_string())?;
-    nfs.mount("0.0.0.0", "/srv/nfs")
-        .map_err(|e| e.to_string())?;
+fn main() -> Result<()> {
+    let mut nfs = Nfs::new()?;
+    nfs.set_uid(1000)?;
+    nfs.set_gid(1000)?;
+    nfs.set_debug(9)?;
+    nfs.mount("0.0.0.0", "/srv/nfs")?;
 
-    let dir = nfs.opendir(&Path::new("/")).map_err(|e| e.to_string())?;
+    let dir = nfs.opendir(&Path::new("/"))?;
     for f in dir {
         println!("dir: {:?}", f);
     }
 
     println!("creating file");
-    let file = nfs
-        .create(&Path::new("/rust"), OFlag::O_SYNC, Mode::S_IRWXU)
-        .map_err(|e| e.to_string())?;
+    let file = nfs.create(
+        &Path::new("/rust"),
+        OFlag::O_SYNC,
+        Mode::S_IROTH | Mode::S_IWOTH,
+    )?;
     let mut contents = String::from("Hello from rust").into_bytes();
-    file.write(&mut contents).map_err(|e| e.to_string())?;
+    file.write(&mut contents)?;
 
     println!("reading file");
-    let file = nfs
-        .open(&Path::new("/rust"), OFlag::O_RDONLY)
-        .map_err(|e| e.to_string())?;
-    let buff = file.read(1024).map_err(|e| e.to_string())?;
+    let file = nfs.open(&Path::new("/rust"), OFlag::O_RDONLY)?;
+    let buff = file.read(1024)?;
     println!("read file: {}", String::from_utf8_lossy(&buff));
     Ok(())
 }
