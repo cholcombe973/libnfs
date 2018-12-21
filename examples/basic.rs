@@ -5,7 +5,7 @@ use std::io::Result;
 use std::path::Path;
 
 use libnfs::*;
-use nix::fcntl::OFlag;
+use nix::{fcntl::OFlag, sys::stat::Mode};
 
 fn main() -> Result<()> {
     let mut nfs = Nfs::new()?;

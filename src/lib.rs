@@ -11,6 +11,7 @@ extern crate nix;
 
 use libnfs_sys::*;
 use nix::fcntl::OFlag;
+use nix::sys::stat::Mode;
 
 use std::ffi::{CStr, CString};
 use std::io::{Error, ErrorKind, Result};
@@ -20,6 +21,7 @@ use std::path::{Path, PathBuf};
 use std::ptr;
 use std::rc::Rc;
 
+#[derive(Clone)]
 struct NfsPtr(*mut nfs_context);
 
 impl Drop for NfsPtr {
@@ -52,43 +54,12 @@ fn check_retcode(ctx: *mut nfs_context, code: i32) -> Result<()> {
     }
 }
 
+#[derive(Clone)]
 pub struct Nfs {
     context: Rc<NfsPtr>,
 }
 
-bitflags! {
-    pub struct Mode: mode_t {
-        /// Set user ID on execution
-        const S_ISUID = 0x00800;
-        /// Set group ID on execution
-        const S_ISGID = 0x00400;
-        /// Save swapped text (not defined in POSIX)
-        const S_ISVTX = 0x00200;
-        /// Read permission for owner
-        const S_IRUSR = 0x00100;
-        /// Write permission for owner
-        const S_IWUSR = 0x00080;
-        /// Execute permission for owner on a file. Or lookup
-        /// (search) permission for owner in directory
-        const S_IXUSR = 0x00040;
-        /// Read permission for group
-        const S_IRGRP = 0x00020;
-        /// Write permission for group
-        const S_IWGRP = 0x00010;
-        /// Execute permission for group on a file. Or lookup
-        /// (search) permission for group in directory
-        const S_IXGRP = 0x00008;
-        /// Read permission for others
-        const S_IROTH = 0x00004;
-        /// Write permission for others
-        const S_IWOTH = 0x00002;
-        /// Execute permission for others on a file. Or lookup
-        /// (search) permission for others in directory
-        const S_IXOTH = 0x00001;
-    }
-}
-
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum EntryType {
     Block,
     Character,
@@ -117,7 +88,7 @@ impl EntryType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DirEntry {
     pub path: PathBuf,
     pub inode: u64,
@@ -140,6 +111,7 @@ pub struct DirEntry {
     pub ctime_nsec: u32,
 }
 
+#[derive(Clone)]
 pub struct NfsDirectory {
     nfs: Rc<NfsPtr>,
     handle: *mut nfsdir,
@@ -155,6 +127,7 @@ impl Drop for NfsDirectory {
     }
 }
 
+#[derive(Clone)]
 pub struct NfsFile {
     nfs: Rc<NfsPtr>,
     handle: *mut nfsfh,
@@ -466,6 +439,13 @@ impl Nfs {
         }
     }
     */
+
+    /*fn convert_cb(
+        &self,
+        f: &extern "C" fn(c_int, *mut nfs_context, *mut c_void, *mut c_void) -> (),
+    ) -> unsafe extern "C" fn(c_int, *mut nfs_context, *mut c_void, *mut c_void) {
+        *f
+    }*/
 
     pub fn readlink(&self, path: &Path, buf: &mut [u8]) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
