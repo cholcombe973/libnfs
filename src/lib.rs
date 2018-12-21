@@ -3,6 +3,8 @@
 //! version=4 or programatically calling nfs_set_version(nfs, NFS_V4) before
 //! connecting to the server/share.
 //!
+#[macro_use]
+extern crate bitflags;
 extern crate libc;
 extern crate libnfs_sys;
 extern crate nix;
@@ -57,7 +59,7 @@ pub struct Nfs {
     context: Rc<NfsPtr>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum EntryType {
     Block,
     Character,
