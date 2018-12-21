@@ -1,11 +1,10 @@
 extern crate libnfs;
 extern crate nix;
 
-use std::path::Path;
-
 use libnfs::*;
 use nix::fcntl::OFlag;
 use nix::sys::stat::Mode;
+use std::path::Path;
 
 fn main() -> Result<(), String> {
     let mut nfs = Nfs::new().map_err(|e| e.to_string())?;
