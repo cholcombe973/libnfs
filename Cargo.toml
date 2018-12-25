@@ -10,10 +10,10 @@ license = "MIT"
 readme = "README.md"
 keywords = ["nfs"]
 categories = ["api-bindings", "network-programming", "filesystem", "external-ffi-bindings"]
+edition = '2018'
 
 
 [dependencies]
-bitflags = "~1.0"
 libc = "~0.2"
 libnfs-sys = "~0.2"
 nix = "~0.11"

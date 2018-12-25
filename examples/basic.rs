@@ -1,6 +1,3 @@
-extern crate libnfs;
-extern crate nix;
-
 use std::io::Result;
 use std::path::Path;
 
