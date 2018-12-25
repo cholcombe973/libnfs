@@ -3,12 +3,6 @@
 //! version=4 or programatically calling nfs_set_version(nfs, NFS_V4) before
 //! connecting to the server/share.
 //!
-#[macro_use]
-extern crate bitflags;
-extern crate libc;
-extern crate libnfs_sys;
-extern crate nix;
-
 use libnfs_sys::*;
 use nix::fcntl::OFlag;
 use nix::sys::stat::Mode;
