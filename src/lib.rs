@@ -17,11 +17,12 @@ use std::mem::zeroed;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::ptr;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
 struct NfsPtr(*mut nfs_context);
-
+unsafe impl Send for NfsPtr{}
+unsafe impl Sync for NfsPtr{}
 impl Drop for NfsPtr {
     fn drop(&mut self) {
         if !self.0.is_null() {
@@ -54,7 +55,7 @@ fn check_retcode(ctx: *mut nfs_context, code: i32) -> Result<()> {
 
 #[derive(Clone)]
 pub struct Nfs {
-    context: Rc<NfsPtr>,
+    context: Arc<Mutex<NfsPtr>>,
 }
 
 #[derive(Debug, Clone)]
@@ -111,7 +112,7 @@ pub struct DirEntry {
 
 #[derive(Clone)]
 pub struct NfsDirectory {
-    nfs: Rc<NfsPtr>,
+    nfs: Arc<Mutex<NfsPtr>>,
     handle: *mut nfsdir,
 }
 
@@ -127,7 +128,7 @@ impl Drop for NfsDirectory {
 
 #[derive(Clone)]
 pub struct NfsFile {
-    nfs: Rc<NfsPtr>,
+    nfs: Arc<Mutex<<NfsPtr>>,
     handle: *mut nfsfh,
 }
 
