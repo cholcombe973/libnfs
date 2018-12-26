@@ -10,6 +10,7 @@ license = "MIT"
 readme = "README.md"
 keywords = ["nfs"]
 categories = ["api-bindings", "network-programming", "filesystem", "external-ffi-bindings"]
+edition = '2018'
 
 
 [dependencies]

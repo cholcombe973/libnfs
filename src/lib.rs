@@ -3,10 +3,6 @@
 //! version=4 or programatically calling nfs_set_version(nfs, NFS_V4) before
 //! connecting to the server/share.
 //!
-extern crate libc;
-extern crate libnfs_sys;
-extern crate nix;
-
 use libnfs_sys::*;
 use nix::fcntl::OFlag;
 use nix::sys::stat::Mode;
@@ -58,7 +54,7 @@ pub struct Nfs {
     context: Arc<Mutex<NfsPtr>>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum EntryType {
     Block,
     Character,
