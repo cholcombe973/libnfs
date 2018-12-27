@@ -114,7 +114,7 @@ pub struct NfsDirectory {
 
 impl Drop for NfsDirectory {
     fn drop(&mut self) {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         if !self.handle.is_null() {
             unsafe {
                 nfs_closedir(ptr.0, self.handle);
@@ -131,7 +131,7 @@ pub struct NfsFile {
 
 impl Drop for NfsFile {
     fn drop(&mut self) {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         if !self.handle.is_null() {
             unsafe {
                 nfs_close(ptr.0, self.handle);
@@ -169,7 +169,7 @@ impl Nfs {
 
     pub fn access(&self, path: &Path, mode: i32) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_access(ptr.0, path.as_ptr(), mode))?;
             Ok(())
@@ -178,7 +178,7 @@ impl Nfs {
 
     pub fn access2(&self, path: &Path) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_access2(ptr.0, path.as_ptr()))?;
             Ok(())
@@ -187,7 +187,7 @@ impl Nfs {
 
     pub fn chdir(&self, path: &Path) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_chdir(ptr.0, path.as_ptr()))?;
             Ok(())
@@ -196,7 +196,7 @@ impl Nfs {
 
     pub fn chown(&self, path: &Path, uid: i32, gid: i32) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_chown(ptr.0, path.as_ptr(), uid, gid))?;
             Ok(())
@@ -210,7 +210,7 @@ impl Nfs {
     /// O_TRUNC
     pub fn create(&mut self, path: &Path, flags: OFlag, mode: Mode) -> Result<NfsFile> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let mut file_handle: *mut nfsfh = ptr::null_mut();
             check_retcode(
@@ -232,7 +232,7 @@ impl Nfs {
 
     pub fn getcwd(&self) -> Result<PathBuf> {
         let mut cwd = ptr::null();
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             nfs_getcwd(ptr.0, &mut cwd);
             let path_tmp = CStr::from_ptr(cwd).to_string_lossy().into_owned();
@@ -243,7 +243,7 @@ impl Nfs {
 
     /// Get the maximum supported READ3 size by the server
     pub fn get_readmax(&self) -> Result<u64> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let max = nfs_get_readmax(ptr.0);
             Ok(max)
@@ -252,7 +252,7 @@ impl Nfs {
 
     /// Get the maximum supported WRITE3 size by the server
     pub fn get_writemax(&self) -> Result<u64> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let max = nfs_get_writemax(ptr.0);
             Ok(max)
@@ -261,7 +261,7 @@ impl Nfs {
 
     pub fn lchmod(&self, path: &Path, mode: Mode) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_lchmod(ptr.0, path.as_ptr(), mode.bits() as i32))?;
             Ok(())
@@ -270,7 +270,7 @@ impl Nfs {
 
     pub fn lchown(&self, path: &Path, uid: i32, gid: i32) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_lchown(ptr.0, path.as_ptr(), uid, gid))?;
             Ok(())
@@ -280,7 +280,7 @@ impl Nfs {
     pub fn link(&self, oldpath: &Path, newpath: &Path) -> Result<()> {
         let old_path = CString::new(oldpath.as_os_str().as_bytes())?;
         let new_path = CString::new(newpath.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_link(ptr.0, old_path.as_ptr(), new_path.as_ptr()))?;
             Ok(())
@@ -289,7 +289,7 @@ impl Nfs {
 
     pub fn lstat64(&self, path: &Path) -> Result<nfs_stat_64> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let mut stat_buf: nfs_stat_64 = zeroed();
             check_retcode(ptr.0, nfs_lstat64(ptr.0, path.as_ptr(), &mut stat_buf))?;
@@ -299,7 +299,7 @@ impl Nfs {
 
     pub fn mkdir(&self, path: &Path) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_mkdir(ptr.0, path.as_ptr()))?;
             Ok(())
@@ -308,7 +308,7 @@ impl Nfs {
 
     pub fn mknod(&self, path: &Path, mode: i32, dev: i32) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_mknod(ptr.0, path.as_ptr(), mode, dev))?;
             Ok(())
@@ -318,7 +318,7 @@ impl Nfs {
     pub fn mount(&self, server: &str, export_name: &str) -> Result<()> {
         let server = CString::new(server.as_bytes())?;
         let export = CString::new(export_name.as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_mount(ptr.0, server.as_ptr(), export.as_ptr()))?;
             Ok(())
@@ -334,7 +334,7 @@ impl Nfs {
     /// O_TRUNC (Only valid with O_RDWR or O_WRONLY. Ignored otherwise.)
     pub fn open(&mut self, path: &Path, flags: OFlag) -> Result<NfsFile> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let mut file_handle: *mut nfsfh = ptr::null_mut();
             check_retcode(
@@ -350,7 +350,7 @@ impl Nfs {
 
     pub fn opendir(&mut self, path: &Path) -> Result<NfsDirectory> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let mut dir_handle: *mut nfsdir = ptr::null_mut();
             check_retcode(ptr.0, nfs_opendir(ptr.0, path.as_ptr(), &mut dir_handle))?;
@@ -430,7 +430,7 @@ impl Nfs {
 
     pub fn readlink(&self, path: &Path, buf: &mut [u8]) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(
                 ptr.0,
@@ -448,7 +448,7 @@ impl Nfs {
     pub fn rename(&self, oldpath: &Path, newpath: &Path) -> Result<()> {
         let old_path = CString::new(oldpath.as_os_str().as_bytes())?;
         let new_path = CString::new(newpath.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(
                 ptr.0,
@@ -460,7 +460,7 @@ impl Nfs {
 
     pub fn rmdir(&self, path: &Path) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_rmdir(ptr.0, path.as_ptr()))?;
             Ok(())
@@ -468,7 +468,7 @@ impl Nfs {
     }
 
     pub fn set_auth(&self, auth: &mut AUTH) -> Result<()> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             nfs_set_auth(ptr.0, auth);
         }
@@ -477,7 +477,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_tcp_syncnt(&self, syncnt: i32) -> Result<()> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             nfs_set_tcp_syncnt(ptr.0, syncnt);
         }
@@ -486,7 +486,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_uid(&self, uid: i32) -> Result<()> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             nfs_set_uid(ptr.0, uid);
         }
@@ -495,7 +495,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_gid(&self, gid: i32) -> Result<()> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             nfs_set_gid(ptr.0, gid);
         }
@@ -504,7 +504,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_readahead(&self, size: u32) -> Result<()> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             nfs_set_readahead(ptr.0, size);
         }
@@ -513,7 +513,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_debug(&self, level: i32) -> Result<()> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             nfs_set_debug(ptr.0, level);
         }
@@ -522,7 +522,7 @@ impl Nfs {
 
     pub fn stat64(&self, path: &Path) -> Result<nfs_stat_64> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let mut stat_buf: nfs_stat_64 = zeroed();
             check_retcode(ptr.0, nfs_stat64(ptr.0, path.as_ptr(), &mut stat_buf))?;
@@ -532,7 +532,7 @@ impl Nfs {
 
     pub fn statvfs(&self, path: &Path) -> Result<statvfs> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let mut stat_buf: statvfs = zeroed();
             check_retcode(ptr.0, nfs_statvfs(ptr.0, path.as_ptr(), &mut stat_buf))?;
@@ -543,7 +543,7 @@ impl Nfs {
     pub fn symlink(&self, oldpath: &Path, newpath: &Path) -> Result<()> {
         let old_path = CString::new(oldpath.as_os_str().as_bytes())?;
         let new_path = CString::new(newpath.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(
                 ptr.0,
@@ -555,7 +555,7 @@ impl Nfs {
 
     pub fn truncate(&self, path: &Path, len: u64) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_truncate(ptr.0, path.as_ptr(), len))?;
             Ok(())
@@ -563,7 +563,7 @@ impl Nfs {
     }
 
     pub fn umask(&self, mask: u16) -> Result<u16> {
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             let mask = nfs_umask(ptr.0, mask);
             Ok(mask)
@@ -572,7 +572,7 @@ impl Nfs {
 
     pub fn unlink(&self, path: &Path) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_unlink(ptr.0, path.as_ptr()))?;
             Ok(())
@@ -582,7 +582,7 @@ impl Nfs {
     // Set the access and modified times
     pub fn utimes(&self, path: &Path, times: &mut [timeval; 2]) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = self.context.lock().as_ref().unwrap();
+        let ptr = self.context.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_utimes(ptr.0, path.as_ptr(), times.as_mut_ptr()))?;
             Ok(())
@@ -592,7 +592,7 @@ impl Nfs {
 
 impl NfsFile {
     pub fn fchmod(&self, mode: i32) -> Result<()> {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_fchmod(ptr.0, self.handle, mode))?;
 
@@ -601,7 +601,7 @@ impl NfsFile {
     }
 
     pub fn fchown(&self, uid: i32, gid: i32) -> Result<()> {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_fchown(ptr.0, self.handle, uid, gid))?;
             Ok(())
@@ -609,7 +609,7 @@ impl NfsFile {
     }
 
     pub fn ftruncate(&self, len: u64) -> Result<()> {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_ftruncate(ptr.0, self.handle, len))?;
             Ok(())
@@ -618,7 +618,7 @@ impl NfsFile {
 
     /// 64 bit version of fstat. All fields are always 64bit.
     pub fn fstat64(&self) -> Result<nfs_stat_64> {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         unsafe {
             let mut stat_buf: nfs_stat_64 = zeroed();
             check_retcode(ptr.0, nfs_fstat64(ptr.0, self.handle, &mut stat_buf))?;
@@ -627,7 +627,7 @@ impl NfsFile {
     }
 
     pub fn fsync(&self) -> Result<()> {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         unsafe {
             check_retcode(ptr.0, nfs_fsync(ptr.0, self.handle))?;
             Ok(())
@@ -636,7 +636,7 @@ impl NfsFile {
 
     pub fn pread(&self, count: u64, offset: u64) -> Result<Vec<u8>> {
         let mut buffer: Vec<u8> = Vec::with_capacity(count as usize);
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         unsafe {
             let read_size = nfs_pread(
                 ptr.0,
@@ -652,7 +652,7 @@ impl NfsFile {
     }
 
     pub fn pwrite(&self, buffer: &[u8], offset: u64) -> Result<i32> {
-        let ptr = self.nfs.lock().as_ref().unwrap();
+        let ptr = self.nfs.lock().unwrap();
         unsafe {
             let write_size = nfs_pwrite(
                 ptr.0,
@@ -689,7 +689,7 @@ impl Iterator for NfsDirectory {
     type Item = Result<DirEntry>;
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
-            let ptr = self.nfs.lock().as_ref().unwrap();
+            let ptr = self.nfs.lock().unwrap();
             let dirent = nfs_readdir(ptr.0, self.handle);
             if dirent.is_null() {
                 return None;
