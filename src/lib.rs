@@ -52,6 +52,7 @@ fn check_retcode(ctx: *mut nfs_context, code: i32) -> Result<()> {
     }
 }
 
+#[derive(Clone)]
 pub struct Nfs {
     context: Rc<NfsPtr>,
 }
