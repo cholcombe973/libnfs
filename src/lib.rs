@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::ptr;
 use std::rc::Rc;
 
+#[derive(Clone)]
 struct NfsPtr(*mut nfs_context);
 
 impl Drop for NfsPtr {
@@ -89,7 +90,7 @@ bitflags! {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EntryType {
     Block,
     Character,
@@ -118,7 +119,7 @@ impl EntryType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DirEntry {
     pub path: PathBuf,
     pub inode: u64,
@@ -141,6 +142,7 @@ pub struct DirEntry {
     pub ctime_nsec: u32,
 }
 
+#[derive(Clone)]
 pub struct NfsDirectory {
     nfs: Rc<NfsPtr>,
     handle: *mut nfsdir,
@@ -156,6 +158,7 @@ impl Drop for NfsDirectory {
     }
 }
 
+#[derive(Clone)]
 pub struct NfsFile {
     nfs: Rc<NfsPtr>,
     handle: *mut nfsfh,
