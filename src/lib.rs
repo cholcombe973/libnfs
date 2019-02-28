@@ -226,7 +226,7 @@ impl Nfs {
     /// O_SYNC
     /// O_EXCL
     /// O_TRUNC
-    pub fn create(&mut self, path: &Path, flags: OFlag, mode: Mode) -> Result<NfsFile> {
+    pub fn create(&self, path: &Path, flags: OFlag, mode: Mode) -> Result<NfsFile> {
         let path = CString::new(path.as_os_str().as_bytes())?;
         let ptr = match self.context.lock() {
             Ok(p) => p,
@@ -383,9 +383,9 @@ impl Nfs {
     /// O_RDWR
     /// O_SYNC
     /// O_TRUNC (Only valid with O_RDWR or O_WRONLY. Ignored otherwise.)
-    pub fn open(&mut self, path: &Path, flags: OFlag) -> Result<NfsFile> {
+    pub fn open(&self, path: &Path, flags: OFlag) -> Result<NfsFile> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -402,9 +402,9 @@ impl Nfs {
         }
     }
 
-    pub fn opendir(&mut self, path: &Path) -> Result<NfsDirectory> {
+    pub fn opendir(&self, path: &Path) -> Result<NfsDirectory> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -487,7 +487,7 @@ impl Nfs {
 
     pub fn readlink(&self, path: &Path, buf: &mut [u8]) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -498,7 +498,7 @@ impl Nfs {
                     ptr.0,
                     path.as_ptr(),
                     buf.as_mut_ptr() as *mut i8,
-                    buf.len() as i32,
+                    (buf.len()) as i32,
                 ),
             )?;
             Ok(())
@@ -508,7 +508,7 @@ impl Nfs {
     pub fn rename(&self, oldpath: &Path, newpath: &Path) -> Result<()> {
         let old_path = CString::new(oldpath.as_os_str().as_bytes())?;
         let new_path = CString::new(newpath.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -523,7 +523,7 @@ impl Nfs {
 
     pub fn rmdir(&self, path: &Path) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -534,7 +534,7 @@ impl Nfs {
     }
 
     pub fn set_auth(&self, auth: &mut AUTH) -> Result<()> {
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -546,7 +546,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_tcp_syncnt(&self, syncnt: i32) -> Result<()> {
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -558,7 +558,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_uid(&self, uid: i32) -> Result<()> {
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -570,7 +570,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_gid(&self, gid: i32) -> Result<()> {
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -582,7 +582,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_readahead(&self, size: u32) -> Result<()> {
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -594,7 +594,7 @@ impl Nfs {
 
     /// Modify Connect Parameters
     pub fn set_debug(&self, level: i32) -> Result<()> {
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -606,7 +606,7 @@ impl Nfs {
 
     pub fn stat64(&self, path: &Path) -> Result<nfs_stat_64> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -619,7 +619,7 @@ impl Nfs {
 
     pub fn statvfs(&self, path: &Path) -> Result<statvfs> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -629,11 +629,10 @@ impl Nfs {
             Ok(stat_buf)
         }
     }
-
     pub fn symlink(&self, oldpath: &Path, newpath: &Path) -> Result<()> {
         let old_path = CString::new(oldpath.as_os_str().as_bytes())?;
         let new_path = CString::new(newpath.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -648,7 +647,7 @@ impl Nfs {
 
     pub fn truncate(&self, path: &Path, len: u64) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -659,7 +658,7 @@ impl Nfs {
     }
 
     pub fn umask(&self, mask: u16) -> Result<u16> {
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -671,7 +670,7 @@ impl Nfs {
 
     pub fn unlink(&self, path: &Path) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -684,7 +683,7 @@ impl Nfs {
     // Set the access and modified times
     pub fn utimes(&self, path: &Path, times: &mut [timeval; 2]) -> Result<()> {
         let path = CString::new(path.as_os_str().as_bytes())?;
-        let ptr = match self.context.lock(){
+        let ptr = match self.context.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -697,7 +696,7 @@ impl Nfs {
 
 impl NfsFile {
     pub fn fchmod(&self, mode: i32) -> Result<()> {
-        let ptr = match self.nfs.lock(){
+        let ptr = match self.nfs.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -709,7 +708,7 @@ impl NfsFile {
     }
 
     pub fn fchown(&self, uid: i32, gid: i32) -> Result<()> {
-        let ptr = match self.nfs.lock(){
+        let ptr = match self.nfs.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -720,7 +719,7 @@ impl NfsFile {
     }
 
     pub fn ftruncate(&self, len: u64) -> Result<()> {
-        let ptr = match self.nfs.lock(){
+        let ptr = match self.nfs.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -732,7 +731,7 @@ impl NfsFile {
 
     /// 64 bit version of fstat. All fields are always 64bit.
     pub fn fstat64(&self) -> Result<nfs_stat_64> {
-        let ptr = match self.nfs.lock(){
+        let ptr = match self.nfs.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -744,7 +743,7 @@ impl NfsFile {
     }
 
     pub fn fsync(&self) -> Result<()> {
-        let ptr = match self.nfs.lock(){
+        let ptr = match self.nfs.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -755,8 +754,8 @@ impl NfsFile {
     }
 
     pub fn pread(&self, count: u64, offset: u64) -> Result<Vec<u8>> {
-        let mut buffer: Vec<u8> = Vec::with_capacity(count as usize);
-        let ptr = match self.nfs.lock(){
+        let mut buffer: Vec<u8> = Vec::with_capacity((count + 1) as usize);
+        let ptr = match self.nfs.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -775,7 +774,7 @@ impl NfsFile {
     }
 
     pub fn pwrite(&self, buffer: &[u8], offset: u64) -> Result<i32> {
-        let ptr = match self.nfs.lock(){
+        let ptr = match self.nfs.lock() {
             Ok(p) => p,
             Err(e) => panic!("Poisoned Mutex {:?}", e),
         };
@@ -815,7 +814,7 @@ impl Iterator for NfsDirectory {
     type Item = Result<DirEntry>;
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
-            let ptr = match self.nfs.lock(){
+            let ptr = match self.nfs.lock() {
                 Ok(p) => p,
                 Err(e) => panic!("Poisoned Mutex {:?}", e),
             };
