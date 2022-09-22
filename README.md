@@ -12,3 +12,9 @@ dpkg -l | grep -i libnfs
 ii  libnfs-dev:amd64                            1.9.8-1                                      amd64        NFS client library (development files)
 ii  libnfs8:amd64                               1.9.8-1                                      amd64        NFS client library (shared library)
 ```
+And also on ubuntu 20.04:
+```
+dpkg -l | grep -i libnfs
+ii  libnfs-dev:amd64                          4.0.0-1                               amd64        NFS client library (development files)
+ii  libnfs13:amd64                            4.0.0-1                               amd64        NFS client library (shared library)
+```
