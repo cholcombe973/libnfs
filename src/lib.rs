@@ -3,6 +3,9 @@
 //! version=4 or programatically calling nfs_set_version(nfs, NFS_V4) before
 //! connecting to the server/share.
 //!
+
+#![allow(non_upper_case_globals)]
+
 use libnfs_sys::*;
 use nix::fcntl::OFlag;
 use nix::sys::stat::Mode;
@@ -161,6 +164,16 @@ impl Nfs {
             Ok(Nfs {
                 context: Rc::new(NfsPtr(ctx)),
             })
+        }
+    }
+
+    pub fn set_version(&self, version: i32) -> Result<()> {
+        unsafe {
+            check_retcode(
+                self.context.0,
+                nfs_set_version(self.context.0, version),
+            )?;
+            Ok(())
         }
     }
 
