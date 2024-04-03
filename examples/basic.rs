@@ -17,7 +17,7 @@ fn main() -> Result<()> {
     }
 
     println!("creating file");
-    let file = nfs.create(
+    let file = nfs.creat(
         &Path::new("/rust"),
         OFlag::O_SYNC,
         Mode::S_IROTH | Mode::S_IWOTH,
