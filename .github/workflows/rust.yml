@@ -1,4 +1,13 @@
-name: Rust
+# Directory structure
+#
+# By default things occur in $GITHUB_WORKSPACE; as we have to work
+# with multiple directories, to keep things clean we use
+# subdirectories:
+#
+#    $GITHUB_WORKSPACE/libnfs/          The original C-base C-targetting libnfs
+#    $GITHUB_WORKSPACE/rs-libnfs/       The code from this repo
+
+name: Build rs-libnfs
 
 on:
   push:
@@ -26,16 +35,20 @@ jobs:
         repository: cwedgwood/libnfs
         path: libnfs/
         ref: master
-    - name: Build and install libnfs (working in libnfs/)
+    - name: Build and install libnfs
+      working-directory: libnfs/
       run: |
-        cd libnfs/
         ./bootstrap
         ./configure
         make -j4
         sudo make install
-    - name: 'Checkout (of this "rs-libnfs" repo)'
+    - name: Checkout rs-libnfs
       uses: actions/checkout@v4
+      with:
+        path: rs-libnfs/
     - name: Build rs-libnfs
+      working-directory: rs-libnfs/
       run:  cargo build --verbose
     - name: Run tests
+      working-directory: rs-libnfs/
       run: cargo test --verbose
