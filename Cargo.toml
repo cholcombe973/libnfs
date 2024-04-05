@@ -15,6 +15,6 @@ edition = '2021'
 [dependencies]
 libc = "~0.2"
 # Presently the version of crates.io doesn't work (needs update)
-libnfs-sys = { git = "https://github.com/cwedgwood/rs-libnfs-sys" }
+libnfs-sys = { git = "https://github.com/cholcombe973/libnfs-sys", ref="890d7566e284ffb00b9d42dedc3cdc1340922e5a" }
 nix = "~0.25"
 

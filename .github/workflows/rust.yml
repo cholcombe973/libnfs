@@ -32,9 +32,9 @@ jobs:
     - name: Clone libnfs
       uses: actions/checkout@v4
       with:
-        repository: cwedgwood/libnfs
+        repository: sahlberg/libnfs
         path: libnfs/
-        ref: master
+        ref: c09a0f1c90b869b1b1d81df7d80552923150540b
     - name: Build and install libnfs
       working-directory: libnfs/
       run: |
