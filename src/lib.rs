@@ -220,17 +220,16 @@ impl Nfs {
     /// O_SYNC
     /// O_EXCL
     /// O_TRUNC
-    pub fn create(&mut self, path: &Path, flags: OFlag, mode: Mode) -> Result<NfsFile> {
+    pub fn creat(&mut self, path: &Path, flags: OFlag, mode: Mode) -> Result<NfsFile> {
         let path = CString::new(path.as_os_str().as_bytes())?;
         unsafe {
             let mut file_handle: *mut nfsfh = ptr::null_mut();
             check_retcode(
                 self.context.0,
-                nfs_create(
+                nfs_creat(
                     self.context.0,
                     path.as_ptr(),
-                    flags.bits(),
-                    mode.bits() as i32,
+                    flags.bits() | (mode.bits() as i32),
                     &mut file_handle,
                 ),
             )?;
@@ -252,7 +251,7 @@ impl Nfs {
     }
 
     /// Get the maximum supported READ3 size by the server
-    pub fn get_readmax(&self) -> Result<u64> {
+    pub fn get_readmax(&self) -> Result<usize> {
         unsafe {
             let max = nfs_get_readmax(self.context.0);
             Ok(max)
@@ -260,7 +259,7 @@ impl Nfs {
     }
 
     /// Get the maximum supported WRITE3 size by the server
-    pub fn get_writemax(&self) -> Result<u64> {
+    pub fn get_writemax(&self) -> Result<usize> {
         unsafe {
             let max = nfs_get_writemax(self.context.0);
             Ok(max)
@@ -523,9 +522,17 @@ impl Nfs {
     }
 
     /// Modify Connect Parameters
-    pub fn set_readahead(&self, size: u32) -> Result<()> {
+    pub fn set_readmax(&self, size: usize) -> Result<()> {
         unsafe {
-            nfs_set_readahead(self.context.0, size);
+            nfs_set_readmax(self.context.0, size);
+        }
+        Ok(())
+    }
+
+    /// Modify Connect Parameters
+    pub fn set_writemax(&self, size: usize) -> Result<()> {
+        unsafe {
+            nfs_set_writemax(self.context.0, size);
         }
         Ok(())
     }
@@ -534,6 +541,14 @@ impl Nfs {
     pub fn set_debug(&self, level: i32) -> Result<()> {
         unsafe {
             nfs_set_debug(self.context.0, level);
+        }
+        Ok(())
+    }
+
+    /// Modify Connect Parameters
+    pub fn set_autoreconnect(&self, num_retries: i32) -> Result<()> {
+        unsafe {
+            nfs_set_autoreconnect(self.context.0, num_retries);
         }
         Ok(())
     }
@@ -655,15 +670,15 @@ impl NfsFile {
         }
     }
 
-    pub fn pread(&self, count: u64, offset: u64) -> Result<Vec<u8>> {
+    pub fn pread(&self, count: usize, offset: u64) -> Result<Vec<u8>> {
         let mut buffer: Vec<u8> = Vec::with_capacity(count as usize);
         unsafe {
             let read_size = nfs_pread(
                 self.nfs.0,
                 self.handle,
-                offset,
-                count,
                 buffer.as_mut_ptr() as *mut _,
+                count,
+		offset,
             );
             check_retcode(self.nfs.0, read_size)?;
             buffer.set_len(read_size as usize);
@@ -676,16 +691,16 @@ impl NfsFile {
             let write_size = nfs_pwrite(
                 self.nfs.0,
                 self.handle,
-                offset,
-                buffer.len() as u64,
                 buffer.as_ptr() as *mut _,
+		buffer.len() as usize,
+		offset,
             );
             check_retcode(self.nfs.0, write_size)?;
             Ok(write_size)
         }
     }
 
-    pub fn read(&self, count: u64) -> Result<Vec<u8>> {
+    pub fn read(&self, count: usize) -> Result<Vec<u8>> {
         self.pread(count, 0)
     }
 

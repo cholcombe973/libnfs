@@ -1,24 +1,54 @@
-name: Rust
+# Directory structure
+#
+# By default things occur in $GITHUB_WORKSPACE; as we have to work
+# with multiple directories, to keep things clean we use
+# subdirectories:
+#
+#    $GITHUB_WORKSPACE/libnfs/          The original C-base C-targetting libnfs
+#    $GITHUB_WORKSPACE/rs-libnfs/       The code from this repo
+
+name: Build rs-libnfs
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "*" ]
+  workflow_dispatch:
+    branches: [ "*" ]
+    inputs:
+      name:
+        description: "manual run"
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Install libnfs-dev
-      run: sudo apt-get install -y libnfs-dev
-    - name: Build
-      run: cargo build --verbose
+    - name: Install prerequisites
+      run: sudo apt-get install -y libkrb5-dev
+    - name: Clone libnfs
+      uses: actions/checkout@v4
+      with:
+        repository: sahlberg/libnfs
+        path: libnfs/
+        ref: c09a0f1c90b869b1b1d81df7d80552923150540b
+    - name: Build and install libnfs
+      working-directory: libnfs/
+      run: |
+        ./bootstrap
+        ./configure
+        make -j4
+        sudo make install
+    - name: Checkout rs-libnfs
+      uses: actions/checkout@v4
+      with:
+        path: rs-libnfs/
+    - name: Build rs-libnfs
+      working-directory: rs-libnfs/
+      run:  cargo build --verbose
     - name: Run tests
+      working-directory: rs-libnfs/
       run: cargo test --verbose
