@@ -10,7 +10,7 @@ use libnfs_sys::*;
 use nix::fcntl::OFlag;
 use nix::sys::stat::Mode;
 
-use std::ffi::{CStr, CString};
+use std::ffi::{CStr, CString, c_char};
 use std::io::{Error, ErrorKind, Result};
 use std::mem::zeroed;
 use std::os::unix::ffi::OsStrExt;
@@ -463,7 +463,7 @@ impl Nfs {
                 nfs_readlink(
                     self.context.0,
                     path.as_ptr(),
-                    buf.as_mut_ptr() as *mut i8,
+                    buf.as_mut_ptr() as *mut c_char,
                     buf.len() as i32,
                 ),
             )?;
